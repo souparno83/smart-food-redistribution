@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AnimatedPage from "../components/AnimatedPage";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -24,22 +25,9 @@ const Signup = () => {
       if (!response.ok) {
         setError(data.error || "Signup failed");
       } else {
-        // Automatically login after signup
-        const loginResponse = await fetch(
-          "http://localhost:5000/api/auth/login",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          }
-        );
-        const loginData = await loginResponse.json();
-        if (loginResponse.ok) {
-          localStorage.setItem("token", loginData.token);
-          navigate("/donor");
-        } else {
-          setError("Signup succeeded but login failed. Please login manually.");
-        }
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify({ name, email }));
+        navigate("/donor"); // redirect to donor dashboard
       }
     } catch (err) {
       console.error(err);
@@ -48,50 +36,90 @@ const Signup = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <div className="card shadow p-4 col-md-6 mx-auto">
-        <h2 className="text-center mb-4">Sign Up 📝</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label>Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Enter full name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+    <AnimatedPage>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #56ab2f, #ffb347)", // same gradient as login
+        }}
+      >
+        <div className="col-md-6 col-lg-4">
+          <div
+            className="card shadow-lg rounded-4 p-4 border-0"
+            style={{ backgroundColor: "#fffdf5" }} // soft off-white
+          >
+            <h3 className="text-center mb-3 fw-bold text-success">Create Account ✨</h3>
+            <p className="text-center text-muted mb-4">
+              Join us and start donating or receiving food 🌍
+            </p>
+
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Name</label>
+                <input
+                  type="text"
+                  className="form-control rounded-3"
+                  style={{ transition: "0.3s" }}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Email</label>
+                <input
+                  type="email"
+                  className="form-control rounded-3"
+                  style={{ transition: "0.3s" }}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Password</label>
+                <input
+                  type="password"
+                  className="form-control rounded-3"
+                  style={{ transition: "0.3s" }}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a strong password"
+                  required
+                />
+              </div>
+              {error && <p className="text-danger small">{error}</p>}
+
+              <button
+                type="submit"
+                className="btn btn-success w-100 rounded-3 fw-semibold"
+                style={{
+                  transition: "0.3s",
+                }}
+                onMouseEnter={(e) => (e.target.style.backgroundColor = "#4e9b26")}
+                onMouseLeave={(e) => (e.target.style.backgroundColor = "#28a745")}
+              >
+                Sign Up
+              </button>
+            </form>
+
+            <p className="text-center mt-3 mb-0 text-muted">
+              Already have an account?{" "}
+              <span
+                className="text-success fw-semibold"
+                role="button"
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </span>
+            </p>
           </div>
-          <div className="mb-3">
-            <label>Email</label>
-            <input
-              type="email"
-              className="form-control"
-              placeholder="Enter email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <label>Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {error && <p className="text-danger">{error}</p>}
-          <button type="submit" className="btn btn-success w-100">
-            Create Account
-          </button>
-        </form>
+        </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

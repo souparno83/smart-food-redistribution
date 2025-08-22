@@ -1,36 +1,67 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
-import pkg from "pg"; // PostgreSQL
+import { pool } from "./db.js";
 import foodRoutes from "./routes/foodRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import { initDB } from "./dbInit.js";
+import { insertSampleData } from "./dbSampleData.js";
+import events from "events";
 
-const { Pool } = pkg;
+// ------------------------------
+// Fix MaxListenersWarning
+// ------------------------------
+events.defaultMaxListeners = 20;
 
+// ------------------------------
 // Create Express app
+// ------------------------------
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Database connection
-const pool = new Pool({
-  user: "postgres",         // your PostgreSQL username
-  host: "localhost",
-  database: "fooddb",       // make sure this DB exists
-  password: "Souparno@2006", // replace with your PostgreSQL password
-  port: 5432,
-});
+// ------------------------------
+// Initialize DB and insert sample data
+// ------------------------------
+async function setupDatabase() {
+  await initDB();
+  await insertSampleData();
+}
 
-// Test DB connection
-pool.connect()
-  .then(() => console.log("✅ Connected to PostgreSQL"))
-  .catch((err) => console.error("❌ DB connection error", err));
+setupDatabase();
 
-// Routes (pass pool)
+// ------------------------------
+// Routes
+// ------------------------------
 app.use("/api/food", foodRoutes(pool));
 app.use("/api/auth", authRoutes(pool));
+
+// Map data routes
+app.get("/api/map/donors", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, latitude AS lat, longitude AS lng, food_type AS type FROM donors"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch donors" });
+  }
+});
+
+app.get("/api/map/recipients", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, latitude AS lat, longitude AS lng FROM recipients"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch recipients" });
+  }
+});
 
 // Default route
 app.get("/", (req, res) => {
@@ -39,6 +70,6 @@ app.get("/", (req, res) => {
 
 // Start server
 const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`✅ Server running on http://localhost:${PORT}`)
+);

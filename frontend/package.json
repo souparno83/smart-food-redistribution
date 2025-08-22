@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.20.7",
     "axios": "^1.11.0",
     "bootstrap": "^5.3.3",
     "framer-motion": "^12.23.12",
