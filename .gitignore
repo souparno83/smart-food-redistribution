@@ -10,6 +10,9 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+ai/.env
+frontend/.env
+backend/.env
 
 # Build output
 dist/
