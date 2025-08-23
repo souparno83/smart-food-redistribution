@@ -1,3 +1,4 @@
+// backend/server.js
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -8,33 +9,25 @@ import { initDB } from "./dbInit.js";
 import { insertSampleData } from "./dbSampleData.js";
 import events from "events";
 
-// ------------------------------
 // Fix MaxListenersWarning
-// ------------------------------
 events.defaultMaxListeners = 20;
 
-// ------------------------------
 // Create Express app
-// ------------------------------
 const app = express();
+
+app.use("/uploads", express.static("uploads"));
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// ------------------------------
 // Initialize DB and insert sample data
-// ------------------------------
 async function setupDatabase() {
   await initDB();
   await insertSampleData();
 }
 
-setupDatabase();
-
-// ------------------------------
 // Routes
-// ------------------------------
 app.use("/api/food", foodRoutes(pool));
 app.use("/api/auth", authRoutes(pool));
 
@@ -68,8 +61,14 @@ app.get("/", (req, res) => {
   res.send("Smart Food Redistribution API is running 🚀");
 });
 
-// Start server
+// Start server after DB setup
 const PORT = 5000;
-app.listen(PORT, () =>
-  console.log(`✅ Server running on http://localhost:${PORT}`)
-);
+setupDatabase()
+  .then(() => {
+    app.listen(PORT, () =>
+      console.log(`✅ Server running on http://localhost:${PORT}`)
+    );
+  })
+  .catch((err) => {
+    console.error("❌ Failed to setup database:", err);
+  });

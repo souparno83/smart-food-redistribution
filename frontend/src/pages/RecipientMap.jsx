@@ -10,7 +10,7 @@ import {
 const mapContainerStyle = { width: "100%", height: "500px" };
 const centerDefault = { lat: 22.5726, lng: 88.3639 }; // Kolkata central
 
-// Food type colors
+// Food type colors for donors
 const foodColors = {
   Vegetables: "green",
   Fruits: "orange",
@@ -19,19 +19,9 @@ const foodColors = {
   Other: "purple",
 };
 
-// Haversine formula to calculate distance in km
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Radius of the earth in km
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
+// Custom SVG path for recipient marker (pin style)
+const recipientPinPath =
+  "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z";
 
 const RecipientMap = () => {
   const { isLoaded, loadError } = useLoadScript({
@@ -48,20 +38,23 @@ const RecipientMap = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) =>
-          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          setUserLocation({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          }),
         () => setUserLocation(centerDefault) // fallback if denied
       );
     } else {
       setUserLocation(centerDefault);
     }
 
-    // Fetch donors from backend
+    // Fetch donors
     fetch("http://localhost:5000/api/map/donors")
       .then((res) => res.json())
       .then(setDonors)
       .catch(console.error);
 
-    // Fetch recipients from backend
+    // Fetch recipients
     fetch("http://localhost:5000/api/map/recipients")
       .then((res) => res.json())
       .then(setRecipients)
@@ -71,13 +64,6 @@ const RecipientMap = () => {
   if (loadError) return <p>Error loading maps</p>;
   if (!isLoaded) return <p>Loading map...</p>;
 
-  // Filter donors within 5 km of user
-  const nearbyDonors = donors.filter(
-    (d) =>
-      getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, d.lat, d.lng) <=
-      5
-  );
-
   return (
     <div className="container mt-5">
       <h2 className="text-center mb-4">Find Nearby Food Recipients 🗺️</h2>
@@ -86,19 +72,25 @@ const RecipientMap = () => {
           mapContainerStyle={mapContainerStyle}
           zoom={14}
           center={userLocation || centerDefault}
+          options={{ gestureHandling: "greedy" }} // prevents auto-panning
         >
-          {/* User */}
+          {/* User marker */}
           <Marker position={userLocation} label="You" />
 
           {/* 5 km radius circle */}
           <Circle
             center={userLocation}
             radius={5000}
-            options={{ fillColor: "blue", fillOpacity: 0.1, strokeColor: "blue" }}
+            options={{
+              fillColor: "blue",
+              fillOpacity: 0.1,
+              strokeColor: "blue",
+              strokeWeight: 1,
+            }}
           />
 
-          {/* Nearby donors */}
-          {nearbyDonors.map((d) => (
+          {/* Donor markers (always visible) */}
+          {donors.map((d) => (
             <Marker
               key={d.id}
               position={{ lat: d.lat, lng: d.lng }}
@@ -113,11 +105,20 @@ const RecipientMap = () => {
             />
           ))}
 
-          {/* All recipients */}
+          {/* Recipient markers (pin style) */}
           {recipients.map((r) => (
             <Marker
               key={r.id}
               position={{ lat: r.lat, lng: r.lng }}
+              icon={{
+                path: recipientPinPath,
+                fillColor: "red",
+                fillOpacity: 0.9,
+                strokeColor: "white",
+                strokeWeight: 2,
+                scale: 1.5,
+                anchor: new window.google.maps.Point(12, 24),
+              }}
               onClick={() => setSelectedMarker({ type: "recipient", data: r })}
             />
           ))}
@@ -125,7 +126,10 @@ const RecipientMap = () => {
           {/* InfoWindow */}
           {selectedMarker && (
             <InfoWindow
-              position={{ lat: selectedMarker.data.lat, lng: selectedMarker.data.lng }}
+              position={{
+                lat: selectedMarker.data.lat,
+                lng: selectedMarker.data.lng,
+              }}
               onCloseClick={() => setSelectedMarker(null)}
             >
               <div>
@@ -134,7 +138,9 @@ const RecipientMap = () => {
                     <strong>{selectedMarker.data.name}</strong>
                     <p>
                       Food:{" "}
-                      <span style={{ color: foodColors[selectedMarker.data.type] }}>
+                      <span
+                        style={{ color: foodColors[selectedMarker.data.type] }}
+                      >
                         {selectedMarker.data.type}
                       </span>
                     </p>
@@ -150,8 +156,14 @@ const RecipientMap = () => {
           )}
         </GoogleMap>
 
-        <p className="mt-2 text-center text-muted">
-          Green = Vegetables, Orange = Fruits, Blue = Dairy, Brown = Grains, Purple = Other
+        {/* Legend */}
+        <p className="mt-3 text-center text-muted">
+          <span style={{ color: "green", fontWeight: "bold" }}>●</span> Vegetables{" "}
+          <span style={{ color: "orange", fontWeight: "bold" }}>●</span> Fruits{" "}
+          <span style={{ color: "brown", fontWeight: "bold" }}>●</span> Grains{" "}
+          <span style={{ color: "blue", fontWeight: "bold" }}>●</span> Dairy{" "}
+          <span style={{ color: "purple", fontWeight: "bold" }}>●</span> Other{" "}
+          <span style={{ color: "red", fontSize: "18px" }}>📍</span> Recipients
         </p>
       </div>
     </div>

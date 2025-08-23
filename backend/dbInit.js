@@ -1,3 +1,4 @@
+// backend/dbInit.js
 import { pool } from "./db.js";
 
 export async function initDB() {
@@ -34,7 +35,20 @@ export async function initDB() {
       );
     `);
 
-    console.log("✅ Database initialized with users, donors, and recipients tables");
+    // Donations table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS donations (
+        id SERIAL PRIMARY KEY,
+        donor_name VARCHAR(100),
+        food_item VARCHAR(100),
+        quantity VARCHAR(50),
+        location VARCHAR(150),
+        image_path VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    console.log("✅ Database initialized successfully");
   } catch (err) {
     console.error("❌ Error initializing database:", err);
   }

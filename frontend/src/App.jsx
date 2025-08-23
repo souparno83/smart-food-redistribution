@@ -9,6 +9,7 @@ import Signup from './pages/Signup'
 import DonorDashboard from './pages/DonorDashboard'
 import RecipientMap from './pages/RecipientMap'
 import Chat from './pages/Chat'
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/donor" element={<DonorDashboard />} />
           <Route path="/map" element={<RecipientMap />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Routes>
       </div>
       <Footer />

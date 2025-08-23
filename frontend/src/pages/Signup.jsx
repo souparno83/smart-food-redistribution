@@ -25,8 +25,9 @@ const Signup = () => {
       if (!response.ok) {
         setError(data.error || "Signup failed");
       } else {
+        // Save token and user
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify({ name, email }));
+        localStorage.setItem("user", JSON.stringify(data.user));
         navigate("/donor"); // redirect to donor dashboard
       }
     } catch (err) {
@@ -41,13 +42,13 @@ const Signup = () => {
         className="d-flex justify-content-center align-items-center"
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #56ab2f, #ffb347)", // same gradient as login
+          background: "linear-gradient(135deg, #56ab2f, #ffb347)",
         }}
       >
         <div className="col-md-6 col-lg-4">
           <div
             className="card shadow-lg rounded-4 p-4 border-0"
-            style={{ backgroundColor: "#fffdf5" }} // soft off-white
+            style={{ backgroundColor: "#fffdf5" }}
           >
             <h3 className="text-center mb-3 fw-bold text-success">Create Account ✨</h3>
             <p className="text-center text-muted mb-4">
@@ -60,7 +61,6 @@ const Signup = () => {
                 <input
                   type="text"
                   className="form-control rounded-3"
-                  style={{ transition: "0.3s" }}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your name"
@@ -72,7 +72,6 @@ const Signup = () => {
                 <input
                   type="email"
                   className="form-control rounded-3"
-                  style={{ transition: "0.3s" }}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
@@ -84,24 +83,16 @@ const Signup = () => {
                 <input
                   type="password"
                   className="form-control rounded-3"
-                  style={{ transition: "0.3s" }}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Create a strong password"
                   required
                 />
               </div>
+
               {error && <p className="text-danger small">{error}</p>}
 
-              <button
-                type="submit"
-                className="btn btn-success w-100 rounded-3 fw-semibold"
-                style={{
-                  transition: "0.3s",
-                }}
-                onMouseEnter={(e) => (e.target.style.backgroundColor = "#4e9b26")}
-                onMouseLeave={(e) => (e.target.style.backgroundColor = "#28a745")}
-              >
+              <button type="submit" className="btn btn-success w-100 rounded-3 fw-semibold">
                 Sign Up
               </button>
             </form>

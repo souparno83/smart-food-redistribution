@@ -17,6 +17,10 @@ function Navbar() {
             <li className="nav-item"><Link className="nav-link" to="/donor">Donor</Link></li>
             <li className="nav-item"><Link className="nav-link" to="/map">Map</Link></li>
             <li className="nav-item"><Link className="nav-link" to="/chat">Chat</Link></li>
+            {/* ✅ Add Notifications link */}
+            <li className="nav-item">
+              <Link className="nav-link" to="/notifications">Notifications</Link>
+            </li>
           </ul>
         </div>
       </div>

@@ -10,6 +10,7 @@ const authRoutes = (pool) => {
     const { name, email, password } = req.body;
 
     try {
+      // Check if user exists
       const userExists = await pool.query(
         "SELECT * FROM users WHERE email=$1",
         [email]
@@ -18,14 +19,25 @@ const authRoutes = (pool) => {
         return res.status(400).json({ error: "User already exists" });
       }
 
+      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      await pool.query(
-        "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
+      // Insert new user
+      const result = await pool.query(
+        "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *",
         [name, email, hashedPassword]
       );
 
-      res.json({ message: "User registered successfully" });
+      const user = result.rows[0];
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.id, email: user.email },
+        "your_jwt_secret_key", // use env variable in production
+        { expiresIn: "1h" }
+      );
+
+      res.status(201).json({ message: "User registered successfully", token, user: { id: user.id, name: user.name, email: user.email } });
     } catch (err) {
       console.error(err.message);
       res.status(500).json({ error: "Signup failed" });
@@ -50,11 +62,11 @@ const authRoutes = (pool) => {
 
       const token = jwt.sign(
         { id: user.rows[0].id, email: user.rows[0].email },
-        "your_jwt_secret_key", // change this to env var later
+        "your_jwt_secret_key",
         { expiresIn: "1h" }
       );
 
-      res.json({ message: "Login successful", token });
+      res.json({ message: "Login successful", token, user: { id: user.rows[0].id, name: user.rows[0].name, email: user.rows[0].email } });
     } catch (err) {
       console.error(err.message);
       res.status(500).json({ error: "Login failed" });

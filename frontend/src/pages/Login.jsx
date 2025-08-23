@@ -23,9 +23,11 @@ const Login = () => {
       if (!response.ok) {
         setError(data.error || "Login failed");
       } else {
+        // ✅ Save token & user info correctly
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify({ name: data.name, email }));
+        localStorage.setItem("user", JSON.stringify(data.user));
 
+        // ✅ Redirect to donor dashboard
         navigate("/donor");
       }
     } catch (err) {
@@ -62,11 +64,6 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                style={{
-                  transition: "all 0.4s ease-in-out",
-                }}
-                onFocus={(e) => (e.target.style.boxShadow = "0 0 8px #56ab2f")}
-                onBlur={(e) => (e.target.style.boxShadow = "none")}
               />
             </div>
 
@@ -79,25 +76,12 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                style={{
-                  transition: "all 0.4s ease-in-out",
-                }}
-                onFocus={(e) => (e.target.style.boxShadow = "0 0 8px #56ab2f")}
-                onBlur={(e) => (e.target.style.boxShadow = "none")}
               />
             </div>
 
             {error && <p className="text-danger small">{error}</p>}
 
-            <button
-              type="submit"
-              className="btn btn-success w-100 rounded-3 fw-semibold"
-              style={{
-                transition: "transform 0.2s ease, background-color 0.3s ease",
-              }}
-              onMouseEnter={(e) => (e.target.style.transform = "scale(1.03)")}
-              onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
-            >
+            <button type="submit" className="btn btn-success w-100 rounded-3 fw-semibold">
               ✅ Login
             </button>
           </form>
@@ -105,7 +89,10 @@ const Login = () => {
           <div className="text-center mt-3">
             <p className="small text-muted">
               Don’t have an account?{" "}
-              <a href="/register" className="fw-semibold text-success text-decoration-none">
+              <a
+                href="/register"
+                className="fw-semibold text-success text-decoration-none"
+              >
                 Register here
               </a>
             </p>
